@@ -1,0 +1,23 @@
+﻿@model StorePage
+@{
+    ViewBag.Title = "Все склады";
+}
+
+<form method="get">
+    <label class="custom-control-label">Город</label>
+    <input name="Options.SearchTerm" value="@Model.Options.SearchTerm" class="form-control" />
+
+    <label class="custom-control-label">Заполненность</label>
+    <select id="Options.Switch" name="Options.Switch" class="form-control">
+        <option value="@null">Все</option>
+        <option selected=@(Model.Options.Switch == true) value="@true">С товарами</option>
+        <option selected=@(Model.Options.Switch == false) value="@false">Пустые</option>
+    </select>
+
+    <input type="submit" value="Фильтр" class="btn btn-outline-dark" />
+
+    <page-form options="@Model.Options" />
+</form>
+
+@Html.Partial("Table", Model)
+@Html.Partial("PageNav", Model)

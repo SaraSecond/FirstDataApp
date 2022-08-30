@@ -1,0 +1,196 @@
+using EFDataApp.Models;
+using Microsoft.AspNetCore.Razor.TagHelpers;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+
+namespace EFDataApp.TagHelpers
+{
+    
+
+
+    // Тагхелпер для создания ссылок постраничной навигации и сортировки (сортировочная ссылка в названии сторбцов таблицы)
+    // Сохраняем данные фильтрации, номера страницы и/или вида сортировки при переходе на новую страницу или сортировке
+    public class ReferTagHelper : TagHelper
+    {
+        public QueryOptions Options { get; set; }
+        public int? Page { get; set; }
+        public string Name { get; set; }
+        public string Class { get; set; }
+        public string Sort { get; set; }
+
+        
+        public override void Process(TagHelperContext context, TagHelperOutput output)
+        {
+            output.TagName = "form";
+            output.TagMode = TagMode.StartTagAndEndTag;
+            output.Attributes.SetAttribute("method", "get");
+
+            //string listContent = @$"<input type=""hidden"" name=""Options.CurrentPage"" value=""{Page ?? Options.CurrentPage}""/>"
+            //    + @$"<input type=""hidden"" name=""Options.SortPropertyName"" value=""{Sort ?? Options.SortPropertyName}""/>"
+            //    + @$"<input type=""hidden"" name=""Options.DecsendingOrder"" value=""{ (Options.SortPropertyName == Sort ? !Options.DecsendingOrder : Options.DecsendingOrder) }""/>"
+            //    + @$"<input type=""hidden"" name=""Options.PageSize"" value=""{Options.PageSize}""/>"
+            //    + $@"<input type=""submit"" value=""{Name}"" class=""{Class}"" />";
+
+            string listContent = 
+                  Global.Input("CurrentPage", Page ?? Options.CurrentPage)
+                + Global.Input("SortPropertyName", Sort ?? Options.SortPropertyName)
+                + Global.Input("DecsendingOrder", Options.SortPropertyName == Sort ? !Options.DecsendingOrder : Options.DecsendingOrder)
+                + Global.Input("PageSize", Options.PageSize)
+                + $@"<input type=""submit"" value=""{Name}"" class=""{Class}"" />";
+
+            for (int i = 0; i < Options.Properties.Count(); i++)
+            {
+                //listContent += @$"<input type=""hidden"" name=""Options.Properties"" value=""{Options.Properties[i]}""/>";
+                listContent += Global.Input("Properties", Options.Properties[i]);
+            }
+
+            // Добавляем доп. параметры фильтрации в ссылку с помощью нескольких объеденненных тегов input, что бы не терять данные фильтрации при переходе на другую страницу или сортировке
+            // При создании обособленной фильтрации для новой сущности дописываем свой функционал по примеру условий if ниже в классе
+            // Для таблицы Product
+            if (Options is ProductOptions prodOptions) 
+            {
+
+                //listContent += @$"<input type=""hidden"" name=""Options.MinCount"" value=""{prodOptions.MinCount}""/>"
+                //    + @$"<input type=""hidden"" name=""Options.MaxCount"" value=""{prodOptions.MaxCount}""/>"
+                //    + @$"<input type=""hidden"" name=""Options.Switch"" value=""{prodOptions.Switch}""/>";
+                //for(int i = 0; i < prodOptions.SearchTerms.Count() && i < prodOptions.SearchPropertyNames.Count(); i++)
+                //{
+                //    listContent += @$"<input type=""hidden"" name=""Options.SearchTerms"" value=""{(prodOptions.SearchTerms.Count() > 0 ? prodOptions.SearchTerms[i] : string.Empty)}""/>"
+                //        + @$"<input type=""hidden"" name=""Options.SearchPropertyNames"" value=""{prodOptions.SearchPropertyNames[i]}""/>";
+                //}
+
+                listContent += Global.ProdForm(prodOptions);
+            }
+
+            // Для таблицы Storet
+            if (Options is StoreOptions storOptions)
+            {
+                //listContent += @$"<input type=""hidden"" name=""Options.SearchTerm"" value=""{storOptions.SearchTerm}""/>"
+                //    + @$"<input type=""hidden"" name=""Options.Switch"" value=""{storOptions.Switch}""/>";
+                listContent += Global.StoreForm(storOptions);
+            }
+
+            output.Content.SetHtmlContent(listContent);
+        } 
+    }
+
+    // Тагхелпер для установки доп. параметров для формы с помощью нескольких объеденненных тегов input, что бы не терять номер страницы и вид сортировки при фильтрации данных таблицы
+    // Устанавливается внутри формы фильтрации для любой сущности, принимает объект параметров QueryOptions
+    // и булевое значение AddCols для формы в случае фильтрации таблицы по отображаемым столбцам, если значение не будет установленно, то добавление в свойство Prоperties будет двойное: первое в самой форме, а второе уже в этом тагхелпере
+    // Во избежание этого в тагхелпер добавлено условие, если значение AddCols установлено в true, то добавление параметров в свойство Prоperties в классе тагхелпера уже не будет
+    public class PageForm : TagHelper
+    {
+        public QueryOptions Options { get; set; }
+        public bool AddCols { get; set; }
+
+        public override void Process(TagHelperContext context, TagHelperOutput output)
+        {
+            output.TagName = "div";
+            output.TagMode = TagMode.StartTagAndEndTag;
+
+            //string listContent = @$"<input type=""hidden"" name=""Options.CurrentPage"" value=""{Options.CurrentPage}""/>"
+            //    + @$"<input type=""hidden"" name=""Options.PageSize"" value=""{Options.PageSize}""/>"
+            //    + @$"<input type=""hidden"" name=""Options.SortPropertyName"" value=""{Options.SortPropertyName}""/>"
+            //    + @$"<input type=""hidden"" name=""Options.DecsendingOrder"" value=""{(Options.DecsendingOrder == true ? "True" : "False")}""/>";
+
+            string listContent = 
+                  Global.Input("CurrentPage", Options.CurrentPage)
+                + Global.Input("PageSize", Options.PageSize)
+                + Global.Input("SortPropertyName", Options.SortPropertyName)
+                + Global.Input("ecsendingOrder", Options.DecsendingOrder == true ? "True" : "False");
+            if (!AddCols)
+            {
+                for (int i = 0; i < Options.Properties.Count(); i++)
+                {
+                    //listContent += @$"<input type=""hidden"" name=""Options.Properties"" value=""{Options.Properties[i]}""/>";
+                    listContent += Global.Input("Properties", Options.Properties[i]);
+                }
+            }
+            
+
+            output.Content.SetHtmlContent(listContent);
+        }
+    }
+
+    public class ProdForm : TagHelper
+    {
+        public ProductOptions Options { get; set; }
+        
+        public override void Process(TagHelperContext context, TagHelperOutput output)
+        {
+            output.TagName = "div";
+            output.TagMode = TagMode.StartTagAndEndTag;
+
+            //string listContent = @$"<input type=""hidden"" name=""Options.MinCount"" value=""{Options.MinCount}""/>"
+            //        + @$"<input type=""hidden"" name=""Options.MaxCount"" value=""{Options.MaxCount}""/>"
+            //        + @$"<input type=""hidden"" name=""Options.Switch"" value=""{Options.Switch}""/>";
+
+            //for (int i = 0; i < Options.SearchTerms.Count() && i < Options.SearchPropertyNames.Count(); i++)
+            //{
+            //    listContent += @$"<input type=""hidden"" name=""Options.SearchTerms"" value=""{(Options.SearchTerms.Count() > 0 ? Options.SearchTerms[i] : string.Empty)}""/>"
+            //        + @$"<input type=""hidden"" name=""Options.SearchPropertyNames"" value=""{Options.SearchPropertyNames[i]}""/>";
+            //}
+
+            output.Content.SetHtmlContent(Global.ProdForm(Options));
+        }
+    }
+
+    public class StoreForm : TagHelper
+    {
+        public StoreOptions Options { get; set; }
+
+        public override void Process(TagHelperContext context, TagHelperOutput output)
+        {
+            output.TagName = "div";
+            output.TagMode = TagMode.StartTagAndEndTag;
+
+            //string listContent = @$"<input type=""hidden"" name=""Options.SearchTerm"" value=""{Options.SearchTerm}""/>"
+            //        + @$"<input type=""hidden"" name=""Options.Switch"" value=""{Options.Switch}""/>";
+
+
+            output.Content.SetHtmlContent(Global.StoreForm(Options));
+        }
+    }
+
+    public static class Global
+    {
+        public static string Input<T>(string opName, T val)
+        {
+            return @$"<input type=""hidden"" name=""Options.{opName}"" value=""{val}""/>";
+        }
+
+        public static string ProdForm(ProductOptions options)
+        {
+            //string listContent = @$"<input type=""hidden"" name=""Options.MinCount"" value=""{options.MinCount}""/>"
+            //        + @$"<input type=""hidden"" name=""Options.MaxCount"" value=""{options.MaxCount}""/>"
+            //        + @$"<input type=""hidden"" name=""Options.Switch"" value=""{options.Switch}""/>";
+
+            string listContent =
+                  Input("MinCount", options.MinCount)
+                + Input("MaxCount", options.MaxCount)
+                + Input("Switch", options.Switch);
+
+            for (int i = 0; i < options.SearchTerms.Count() && i < options.SearchPropertyNames.Count(); i++)
+            {
+                //listContent += @$"<input type=""hidden"" name=""Options.SearchTerms"" value=""{(options.SearchTerms.Count() > 0 ? options.SearchTerms[i] : string.Empty)}""/>"
+                //    + @$"<input type=""hidden"" name=""Options.SearchPropertyNames"" value=""{options.SearchPropertyNames[i]}""/>";
+
+                listContent += Input("SearchTerms", options.SearchTerms.Count() > 0 ? options.SearchTerms[i] : string.Empty)
+                    + Input("SearchPropertyNames", options.SearchPropertyNames[i]);
+            }
+            return listContent;
+        }
+
+        public static string StoreForm(StoreOptions options)
+        {
+            //return @$"<input type=""hidden"" name=""Options.SearchTerm"" value=""{options.SearchTerm}""/>"
+            //        + @$"<input type=""hidden"" name=""Options.Switch"" value=""{options.Switch}""/>";
+
+            return Input("SearchTerm", options.SearchTerm) + Input("Switch", options.Switch);
+        }
+    }
+
+
+}

@@ -1,0 +1,158 @@
+﻿@model IndexViewModel
+@{
+    ViewBag.Title = "Все товары";
+}
+
+<form asp-controller="Home" asp-action="Details" asp-route-name="@Model.FilterViewModel.Options.SelectedName" enctype="multipart/form-data">
+    <div class="form-inline form-group">
+        <label class="custom-control-label">Название</label>
+        <input name="name" value="@Model.FilterViewModel.Options.SelectedName" class="form-control" />
+
+        <input type="submit" value="Найти" class="btn btn-outline-dark" />
+    </div>
+</form>
+
+
+<form method="get">
+    <div class="form-inline form-group">
+        <label class="custom-control-label">Название</label>
+        <input asp-for="FilterViewModel.Options.SelectedName" value="@Model.FilterViewModel.Options.SelectedName" class="form-control" />
+
+        <label class="custom-control-label">Цена От</label>
+        <input name="FilterViewModel.Options.SelectedMinPrice" value="@Model.FilterViewModel.Options.SelectedMinPrice" class="form-control" />
+
+        @*<input asp-for="FilterViewModel.SelectedMinPrice" value="@Model.FilterViewModel.SelectedMinPrice" class="form-control" />*@
+        @*<input value="61000" class="form-control" type="number" data-val="true" data-val-required="The SelectedMaxPrice field is required." id="FilterViewModel_SelectedMaxPrice" name="FilterViewModel.SelectedMaxPrice" />*@
+
+        <label class="custom-control-label">Цена До</label>
+        <input asp-for="FilterViewModel.Options.SelectedMaxPrice" value="@Model.FilterViewModel.Options.SelectedMaxPrice" class="form-control" />
+
+
+        <label class="custom-control-label">Производитель</label>
+        <select asp-for="FilterViewModel.Options.SelectedManufacturer" asp-items="@Model.FilterViewModel.Products" class="form-control"></select>
+
+        <label class="custom-control-label">Склад</label>
+        <select asp-for="FilterViewModel.Options.SelectedStore" asp-items="@Model.FilterViewModel.Stores" class="form-control"></select>
+
+        <label>Есть в наличии</label>
+        <input asp-for="FilterViewModel.Options.NotZero" value="@true" />
+
+        <input type="submit" value="Фильтр" class="btn btn-outline-dark" />
+    </div>
+</form>
+
+
+    <ref index-model="@Model" table-view="@true" name="Сетка"></ref>
+    <ref index-model="@Model" name="Таблица"></ref>
+
+
+    <div>
+        @{ int counter = 1; }
+        @if (Model.TableView) // Сетка
+        {
+
+            @foreach (var item in Model.Products)
+            {
+                @if ((counter % 3) == 0)
+                {
+                    <div>
+                        <img src="@item.ImagePath" width="100" height="100" />
+                        <p><a asp-action="Details" asp-controller="Home" asp-route-id="@item.Id">@item.Name</a></p>
+                    </div>
+                }
+                else
+                {
+                    <div style="float: left; padding-left: 15px; padding-right: 15px;">
+                        <img src="@item.ImagePath" width="100" height="100" />
+                        <p><a asp-action="Details" asp-controller="Home" asp-route-id="@item.Id">@item.Name</a></p>
+                    </div>
+                }
+                counter++;
+            }
+        }
+        else // Таблица
+        {
+    <table class="table">
+        <tr>
+            <td><ref index-model="@Model" sort-order="name" name="Название"></ref></td>
+            <td><ref index-model="@Model" sort-order="manufacturer" name="Производитель"></ref></td>
+            <td><ref index-model="@Model" sort-order="price" name="Цена"></ref></td>
+            <td><ref index-model="@Model" sort-order="count" name="Количество"></ref></td>
+            @*<td><a asp-action="Index" asp-route-page="@(Model.PageViewModel.PageNumber)" asp-route-SortOrder="@Model.SortViewModel.NameSort" asp-route-name="@(Model.FilterViewModel.SelectedName)" asp-route-manufacturer="@(Model.FilterViewModel.SelectedManufacturer)" asp-route-minPrice="@(Model.FilterViewModel.SelectedMinPrice)" asp-route-maxPrice="@(Model.FilterViewModel.SelectedMaxPrice)">Название</a></td>*@
+            <td><ref index-model="@Model" sort-order="store" name="Склад"></ref></td>
+            <td><a asp-action="Create">Добавить товар</a></td>
+        </tr>
+        @if (Model.Products.Count() == 0)
+        {
+            <tr><td colspan="6" class="text-center">Товары не найдены</td></tr>
+        }
+        else
+        {
+            @foreach (var item in Model.Products)
+            {
+                <tr>
+                    <td><a asp-action="Details" asp-controller="Home" asp-route-id="@item.Id">@item.Name</a></td>
+                    <td>@item.Manufacturer</td>
+                    <td>@item.Price</td>
+                    <td>@item.Count</td>
+                    <td>@item.Store.Location</td>
+                    <td>
+                        <a asp-action="Edit" asp-controller="Home" asp-route-id="@item.Id">Изменить</a>
+                        /
+                        <a asp-action="Delete" asp-controller="Home" asp-route-id="@item.Id">Удалить</a>
+                    </td>
+                </tr>
+            }
+        }
+
+    </table>
+        }
+    </div>
+
+
+
+
+@if (Model.PageViewModel.HasPreviousPage && Model.PageViewModel.PageNumber != 2)
+{
+    <ref index-model="@Model" page-position="back" name="Назад"></ref>
+    <ref index-model="@Model" page-position="first" name="Первая"></ref>
+    <ref index-model="@Model" page-position="back" name="@(Model.PageViewModel.PageNumber - 1)"></ref>
+
+}
+else if (Model.PageViewModel.PageNumber == 2)
+{
+    <ref index-model="@Model" page-position="back" name="Назад"></ref>
+    <ref index-model="@Model" page-position="first" name="Первая"></ref>
+
+}
+
+
+<ref index-model="@Model" name="@Model.PageViewModel.PageNumber" ref-class="red"></ref>
+@*<a asp-action="Index" asp-route-page="@(Model.PageViewModel.PageNumber)" asp-route-name="@(Model.FilterViewModel.SelectedName)" asp-route-manufacturer="@(Model.FilterViewModel.SelectedManufacturer)" asp-route-sortOrder="@Model.SortViewModel.Current" asp-route-minPrice="@(Model.FilterViewModel.SelectedMinPrice)" asp-route-maxPrice="@(Model.FilterViewModel.SelectedMaxPrice)" class="btn btn-outline-primary">@(Model.PageViewModel.PageNumber)</a>*@
+
+@if (Model.PageViewModel.HasNextPage && Model.PageViewModel.PageNumber != (Model.PageViewModel.TotalPage - 1))
+{
+    <ref index-model="@Model" page-position="next" name="@(Model.PageViewModel.PageNumber + 1)"></ref>
+    <ref index-model="@Model" page-position="last" name="Последняя (@(Model.PageViewModel.TotalPage))"></ref>
+    <ref index-model="@Model" page-position="next" name="Вперёд"></ref>
+}
+else if (Model.PageViewModel.PageNumber == (Model.PageViewModel.TotalPage - 1))
+{
+    <ref index-model="@Model" page-position="last" name="Последняя (@(Model.PageViewModel.TotalPage))"></ref>
+    <ref index-model="@Model" page-position="next" name="Вперёд"></ref>
+}
+
+<form asp-action="CreateSeedData">
+    <div class="form-group">
+        <label class="custom-control-label">Тестовые элементы</label>
+        <input name="count" class="form-control" />
+    </div>
+    <input type="submit" value="Заполнить" class="btn btn-outline-dark" />
+</form>
+
+
+<a asp-action="DeleteAllDate">Очистить базу</a>
+
+
+
+

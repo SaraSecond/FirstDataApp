@@ -1,0 +1,75 @@
+﻿@model ProductPage
+@{
+    ViewBag.Title = "Все товары";
+}
+
+<form method="get">
+    <div class="form-inline form-group">
+        @{ int counter = 0;}
+        @foreach (string s in Model.Options.SearchPropertyNames)
+        {
+            <input type="hidden" name="Options.SearchPropertyNames" value="@s" />
+            <label class="custom-control-label">@(s.IndexOf('.') == -1 ? s : s.Substring(0, s.IndexOf('.')))</label>
+            if (s == "Store.Location")
+            {
+                <select name="Options.SearchTerms" class="form-control">
+                    <option selected value="@null">All</option>
+                    @foreach (var item in Model.Stores)
+                    {
+                        <option selected="@(Model.Options.SearchTerms.Count() > 0 ? (Model.Options.SearchTerms[counter] == item.Location) : false)" value="@item.Location">@item.Location</option>
+                    }
+                </select>
+            }
+            else
+            {
+                <input name="Options.SearchTerms" value="@(Model.Options.SearchTerms.Count() > 0 ? Model.Options.SearchTerms[counter] : string.Empty)" class="form-control" />
+            }
+
+            counter++;
+        }
+
+
+        <label class="custom-control-label">Min Price</label>
+        <input name="Options.MinCount" value="@Model.Options.MinCount" class="form-control" />
+        <label class="custom-control-label">Max Price</label>
+        <input name="Options.MaxCount" value="@Model.Options.MaxCount" class="form-control" />
+
+
+        <label class="custom-control-label">Есть в наличии</label>
+        <input asp-for="Options.Switch" value="@true" />
+
+        <page-form options="@Model.Options" />
+
+
+
+        <input type="submit" value="Фильтр" class="btn btn-outline-dark" />
+    </div>
+</form>
+
+
+<div>
+    @{ int count = 1;}
+    @foreach (var item in Model)
+    {
+        @if ((count % 3) == 0)
+        {
+            <div>
+                <img src="@item.ImagePath" width="100" height="100" />
+                <p><a asp-action="Details" asp-controller="Home" asp-route-id="@item.Id" asp-route-returnUrl="@ViewContext.HttpContext.Request.PathAndQuery()">@item.Name</a></p>
+                <p>@item.Price UGH</p>
+            </div>
+        }
+        else
+        {
+            <div style="float: left; padding-left: 15px; padding-right: 15px;">
+                <img src="@item.ImagePath" width="100" height="100" />
+                <p><a asp-action="Details" asp-controller="Home" asp-route-id="@item.Id" asp-route-returnUrl="@ViewContext.HttpContext.Request.PathAndQuery()">@item.Name</a></p>
+                <p>@item.Price UGH</p>
+            </div>
+        }
+        count++;
+    }
+</div>
+
+
+@Html.Partial("PageNav", Model)

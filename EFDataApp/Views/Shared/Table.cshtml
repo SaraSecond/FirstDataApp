@@ -1,0 +1,75 @@
+﻿
+<table class="table">
+    <tr>
+        @foreach (string p in Model.Options.Properties)
+        {
+            <td><refer options="@Model.Options" sort="@p" name="@(p.IndexOf('.') == -1 ? p : p.Substring(0, p.IndexOf('.')))" /></td>
+        }
+    <td>
+        <form>
+            <details>
+                <summary>Столбцы</summary>
+                @foreach (string c in ViewBag.Cols)
+                {
+                    <p><input type="checkbox" checked="@(((string[])Model.Options.Properties).Contains(c))" value="@c" name="Options.Properties" />@(c.IndexOf('.') == -1 ? c : c.Substring(0, c.IndexOf('.')))</p>
+                }
+                <input type="submit" value="OK" />
+            </details>
+
+            <page-form options="@Model.Options" add-cols="@true" />
+            <entity-form options="@Model.Options"/>
+
+        </form>
+        /
+        <a asp-action="Create" asp-controller="@Model.Options.ControllerName">Создать</a>
+    </td>
+    </tr>
+    @if (Model.Count == 0)
+    {
+        <tr><td colspan="@(((string[])Model.Options.Properties).Count() + 1)" class="text-center">No Data</td></tr>
+    }
+    else
+    {
+        @foreach (var item in Model) // Внешний цикл пробегает по объктам сущности
+        {
+            <tr>
+                @foreach (string property in Model.Options.Properties) // Внутренний цикл пробегает по свойствам объкта сущности
+                {
+                    if (property.Contains(".")) // Если свойство сложное
+                    {
+                        var dividedProperty = property.Split("."); // Разделяем цепочку свойств свойство на массив названий каждого свойства в цепочке
+                        var comPropery = item.GetType().GetProperty(dividedProperty[0]).GetValue(item); // Получаем значение первого свойства в цепочке
+
+                        for (int i = 1; i < dividedProperty.Length; i++) // Пробегаем в цикле получая значение каждого элемента в цепочке пока не дойдем до самого нижнего с элементарным типом данных, значение которого можно отобразить в таблице
+                        {
+                            comPropery = comPropery.GetType().GetProperty(dividedProperty[i]).GetValue(comPropery);
+                        }
+
+                        <td>@comPropery</td>
+                    }
+                    else
+                    {
+                        if (property == "Name")
+                        {
+                            <td><a asp-action="Details" asp-controller="Home" asp-route-id="@item.Id" asp-route-returnUrl="@ViewContext.HttpContext.Request.PathAndQuery()">@item.GetType().GetProperty(property)?.GetValue(item)</a></td>
+                        }
+                        else
+                        {
+                            <td>@item.GetType().GetProperty(property)?.GetValue(item)</td> 
+                            // С помощью рефлексии получаем тип объекта сущности
+                            // из него получаем объект PropertyInfo по передаче названия(задаётся в массиве Properties) через параметр
+                            // из него получаем знаечение свойства по передаче объекта который содержит это свойство также через параметр
+                        }
+
+                    }
+                }
+                <td>
+                    <a asp-action="Edit" asp-controller="@Model.Options.ControllerName" asp-route-id="@item.Id">Изменить</a>
+                    /
+                    <a asp-action="Delete" asp-controller="@Model.Options.ControllerName" asp-route-id="@item.Id">Удалить</a>
+                </td>
+            </tr>
+        }
+    }
+
+</table>

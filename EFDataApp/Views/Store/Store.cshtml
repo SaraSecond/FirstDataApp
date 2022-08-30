@@ -1,0 +1,53 @@
+﻿@model IndexViewModel
+
+
+<form method="get">
+    <label class="custom-control-label">Город</label>
+    <input name="name" value="@Model.FilterViewModel.Options.SelectedName" class="form-control" />
+
+    <label class="custom-control-label">Заполненность</label>
+    <select id="SelectedName" name="selectNotZero" class="form-control">
+            <option value="Все">Все</option>
+            <option selected=@(Model.FilterViewModel.Options.SelectedManufacturer == "С товарами") value="С товарами">С товарами</option>
+            <option selected=@(Model.FilterViewModel.Options.SelectedManufacturer == "Пустые") value="Пустые">Пустые</option>
+    </select>
+
+    <input type="submit" value="Фильтр" class="btn btn-outline-dark" />
+</form>
+
+
+<table class="table">
+    <tr>
+        <td>№</td>
+        <td><a asp-action="Store" asp-route-name="@Model.FilterViewModel.Options.SelectedName" asp-route-selectNotZero="@Model.FilterViewModel.Options.SelectedManufacturer" asp-route-sortOrder="@Model.SortViewModel.NameSort">Город</a></td>
+        <td><a asp-action="Store" asp-route-name="@Model.FilterViewModel.Options.SelectedName" asp-route-selectNotZero="@Model.FilterViewModel.Options.SelectedManufacturer" asp-route-sortOrder="@Model.SortViewModel.CountSort">Заполненность</a></td>
+        <td><a asp-action="Create" asp-controller="Store">Добавить</a></td>
+    </tr>
+    @if (Model.Stores.Count() == 0)
+    {
+        <tr><td colspan="4" class="text-center">Склады не найдены</td></tr>
+    }
+    else
+    {
+        @foreach (var item in Model.Stores)
+        {
+            <tr>
+                <td>@item.Id</td>
+                <td>@item.Location</td>
+                <td>@item.Products.Count</td>
+                <td>
+                    <a asp-action="Edit" asp-controller="Store" asp-route-id="@item.Id">Изменить</a>
+                    /
+                    <a asp-action="Delete" asp-controller="Store" asp-route-id="@item.Id">Удалить</a>
+                </td>
+            </tr>
+        }
+    }
+
+</table>
+
+<p><a asp-action="Index" asp-controller="Home">Товары</a></p>
+
+
+
+

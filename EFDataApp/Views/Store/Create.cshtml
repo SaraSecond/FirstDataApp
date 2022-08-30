@@ -1,0 +1,15 @@
+﻿@model EFDataApp.Domain.Entities.Store
+@{
+    ViewBag.Title = "Добавление Склада";
+}
+
+<form asp-action="Create" asp-controller="Store">
+    <div class="form-group">
+        <label asp-for="Location" class="control-label">Город</label>
+        <input list="namesList" type="text" asp-for="Location" class="form-control" size="10" placeholder="Location" />
+    </div>
+    <div class="form-group">
+        <input type="submit" value="Отправить" class="btn btn-default" />
+        <input type="reset" value="Отмена" class="btn btn-secondary" />
+    </div>
+</form>

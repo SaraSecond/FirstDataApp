@@ -1,0 +1,69 @@
+﻿
+<div>
+    @if (Model.HasPreviousPage)
+    {
+        <refer options="@Model.Options" page="@(Model.CurrentPage - 1)" class="btn btn-outline-primary" name="Previous" />
+    }
+    else
+    {
+        <refer options="@Model.Options" class="btn btn-outline-primary disabled" name="Previous" />
+    }
+
+    <refer options="@Model.Options" page="1" class="btn btn-outline-primary @(Model.CurrentPage == 1 ? "active" : "")" name="1" />
+
+
+    @if ((Model.CurrentPage < 6 && (Model.TotalPages - Model.CurrentPage) > 6) || Model.TotalPages <= 9)
+    {
+        @for (int i = 2; i <= 8 && i < Model.TotalPages; i++)
+        {
+            <refer options="@Model.Options" page="@i" class="btn btn-outline-primary @(Model.CurrentPage == i ? "active" : "")" name="@(i == 8 ? "..." : i)" />
+        }
+    }
+    else if (Model.CurrentPage > 6 && (Model.TotalPages - Model.CurrentPage) > 6)
+    {
+        @for (int i = Model.CurrentPage - 3; i <= Model.CurrentPage + 3 && i != Model.TotalPages; i++)
+        {
+            <refer options="@Model.Options" page="@i" class="btn btn-outline-primary @(Model.CurrentPage == i ? "active" : "")" name="@(i == Model.CurrentPage - 3 || i == Model.CurrentPage + 3 ? "..." : i)" />
+        }
+    }
+    else
+    {
+        @for (int i = Model.TotalPages - 6; i < Model.TotalPages; i++)
+        {
+            <refer options="@Model.Options" page="@i" class="btn btn-outline-primary @(Model.CurrentPage == i ? "active" : "")" name="@(i == Model.TotalPages - 6 ? "..." : i)" />
+        }
+    }
+
+    @if(Model.TotalPages > 1)
+    { 
+        <refer options="@Model.Options" page="Model.TotalPages" class="btn btn-outline-primary @(Model.CurrentPage == Model.TotalPages ? "active" : "")" name="@Model.TotalPages" />
+    }
+    
+
+    @if (Model.HasNextPage)
+    {
+        <refer options="@Model.Options" page="@(Model.CurrentPage + 1)" class="btn btn-outline-primary @(!Model.HasNextPage ? "disabled" : "")" name="Next" />
+    }
+    else
+    {
+        <refer options="@Model.Options" class="btn btn-outline-primary disabled" name="Next" />
+    }
+
+
+
+    <form method="get" class="form-inline d-inline-block">
+
+        <select name="options.PageSize" class="form-control ml-1 mr-1">
+            @foreach (int val in new[] { 10, 25, 50, 100 })
+            {
+                <option value="@val" selected="@(Model.PageSize == val)">@val</option>
+            }
+        </select>
+
+        <page-form options="@Model.Options" />
+        <entity-form options="@Model.Options"/>
+        
+        <input type="hidden" name="options.CurrentPage" value="1" />
+        <button type="submit" class="btn btn-secondary">Page Size</button>
+    </form>
+</div>

@@ -1,0 +1,42 @@
+﻿@model Cart
+@{
+    ViewBag.Title = "Корзина";
+}
+
+
+    <table class="table">
+    <tr>
+        <td>Товар</td>
+        <td>Количество</td>
+        <td>Цена за единицу</td>
+        <td>Цена</td>
+    </tr>
+    @if (Model.Selections.Count() == 0)
+        {
+            <tr><td colspan="4" class="text-center">Корзина пуста</td></tr>
+        }
+        else
+        {
+            @foreach (var item in Model.Selections)
+            {
+                <tr>
+                    <td>@item.Product.Name</td>
+                    <td>@item.Quantity</td>
+                    @*<td><input type="number" name="quantity" min="1" max="10" value="@item.Quantity" class="form-control"/></td>*@
+                    <td>@(item.Product.Price * item.Quantity)</td>
+                    <td>
+                        <a asp-action="RemoveFromCart" asp-controller="Cart" asp-route-productId="@item.ProductId">Удалить</a>
+                    </td>
+                </tr>
+            }
+        }
+    </table>
+
+    <p>Общая стоимость: @Model.Selections.Sum(l => l.Product.Price * l.Quantity)</p>
+
+    @if(ViewBag.returnUrl != null)
+    {
+        <a href="@ViewBag.returnUrl" class="btn btn-outline-primary">Продолжить покупки</a>
+    }
+    <a asp-action="CreateOrder" asp-route-returnUrl="@ViewBag.returnUrl" >Оформить Заказ</a>
+
